@@ -4,6 +4,7 @@ from collections import Counter
 import sqlite3
 import inquirer
 from datetime import *
+import os
 
 class ConnectSql():
     try:
@@ -102,18 +103,21 @@ class Menu:
         if (answers["Menu"] == "Quitter"):
             self.quitGame()
         if (answers["Menu"] == "Nouvelle Partie"):
+            os.system('cls')
             self.launchGame()
         if (answers["Menu"] == "Reprendre"):
+            os.system('cls')
             self.resume()
         if (answers["Menu"] == "Historique"):
+            os.system('cls')
             self.historiqueGame()
     
     def getResume(self):
         for i in range (2, 7):
             self.resumeDice.append(int(self.tabResume[0][i]))
         self.resumeRoll = int(self.tabResume[0][7])
-        for i in range (10, 22):
-            print(Const.combi.keys[i])
+        # for i in range (10, 22):
+        #     print(Const.combi.keys[i])
         self.resumeCombi = {'1': int(self.tabResume[0][10]),
                             '2': int(self.tabResume[0][11]),
                             '3': int(self.tabResume[0][12]),
@@ -158,7 +162,7 @@ class Menu:
     def MainMenu(self):
         questions = [
             inquirer.List('Menu',
-                message="Que souhaitez vous faire ? ",
+                message="Que souhaitez-vous faire ? ",
                 choices=['Reprendre', 'Nouvelle Partie', 'Historique', 'Quitter'],
             ),
         ]
@@ -169,18 +173,19 @@ class Menu:
         if (answers["Menu"] == "Oui"):
             valueModif = self.ReRollMenu(valueModif, roll)
             print(valueModif)
+            os.system('cls')
             R.WhichDiceChange(valueModif, roll, combi, score)
         if (answers["Menu"] == "Non"):
+            os.system('cls')
             C.searchCombination(valueModif, combi, score)
     
     def chooseWhichReroll(self, answers, roll, choice):
         if (answers["Menu"] == []):
-            print("Vous n'avez pas sélectionner de dés a relancé, veuillez choisir.")
+            print("Vous n'avez pas sélectionné de dés a relancé, veuillez choisir.")
+            os.system('cls')
             self.ReRollMenu(choice, roll)
         for v in answers["Menu"]:
            self.DiceWichRoll.append(v)
-        print(self.DiceRoll)
-        print(self.DiceWichRoll)
         return D.roll_indexes(self.DiceWichRoll, roll, choice)
     
     def chooseWhichCombination(self, combiPossible, answers, score):
@@ -200,12 +205,13 @@ class Menu:
                 Constante.combi[i] = "X"
                 Req.addScore(Constante.combi, score)
                 print("prochain tours:")
+                os.system('cls')
                 Game().LaunchGame(Constante.combi, score)
     
     def RollMenu(self, valueModif, roll, combi, score):
         questions = [
             inquirer.List('Menu',
-                message="Voulez vous relancer les dés ? ",
+                message="Voulez-vous relancer les dés ? ",
                 choices=['Oui', 'Non'],
             ),
         ]
@@ -218,13 +224,12 @@ class Menu:
         print(choice)
         questions = [
             inquirer.Checkbox('Menu',
-                message="Quel(s) dé(s) voulez-vous relancer (Espace pour en choisir plusieurs) ?",
+                message="Quel(s) dé(s) voulez-vous relancer (espace pour en choisir plusieurs) ?",
                 choices=['1', '2', '3', '4', '5'],
             ),
         ]
         answers = inquirer.prompt(questions)
         self.DiceRoll = self.chooseWhichReroll(answers, roll, choice)
-        print('jendbdz')
         print (self.DiceRoll)
         return self.DiceRoll
     
@@ -232,7 +237,7 @@ class Menu:
         print (combiPossible)
         questions = [
             inquirer.List('Menu',
-                message="Quel combinaison souhaitez-vous faire ?",
+                message="Quelle combinaison souhaitez-vous faire ?",
                 choices= combiPossible,
             ),
         ]
@@ -243,7 +248,7 @@ class Menu:
     def ChooseSacrifice(self, combiSacrifice, score):
         questions = [
             inquirer.List('Menu',
-                message="Quel combinaison souhaitez-vous sacrifier ?",
+                message="Quelle combinaison souhaitez-vous sacrifier ?",
                 choices= combiSacrifice,
             ),
         ]
@@ -276,6 +281,7 @@ class Game:
     
         
     def LaunchGame(self, combi, score):
+        os.system('cls')
         self.rollDice.clear()
         Resume.run(combi, score)
         # self.WhichRoll(combi, score)
@@ -325,17 +331,11 @@ class Dices:
         return self.TabDice
 
     def roll_indexes(self, index, roll, choice):
-        print('ok')
-        print(index)
-        print('ok')
         print (choice)
         self.TabDice = choice
         for i in index:
             self.TabDice[int(i) - 1] = self.dices[int(i) - 1].roll()
         Req.reRoll(self.TabDice, roll)
-        print('test')
-        print (self.TabDice)
-        print(choice)
         return choice
 
 class Dice:
@@ -447,7 +447,7 @@ class Combination:
     def FinishGame(self, score, combi):
             if score >= 63:
                 score  = score + 35
-            print("plus de combinaison possible parti finis")
+            print("Plus de combinaison possible parti finis")
             print("Votre score final est de : " + str(score) + " points")
             Req.finishGame(combi, score)
             self.sql.conn.close()
