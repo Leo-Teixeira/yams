@@ -5,6 +5,8 @@ import sqlite3
 import inquirer
 from datetime import *
 import os
+from rich.console import Console
+from rich.table import Table
 
 class ConnectSql():
     try:
@@ -56,7 +58,6 @@ class Request:
     
     def Roll(self, choice, roll):
         idScore = self.getIdScore()
-        print (idScore[0][0])
         self.sql.cur.execute("""Insert into Roll values (?, ?, ?, ?, ?, ?, ?, ?)""", (None, idScore[0][0], str(choice[0]), str(choice[1]), str(choice[2]), str(choice[3]), str(choice[4]), str(roll)))
         self.sql.conn.commit()
         
@@ -103,21 +104,19 @@ class Menu:
         if (answers["Menu"] == "Quitter"):
             self.quitGame()
         if (answers["Menu"] == "Nouvelle Partie"):
-            os.system('cls')
+            os.system('clear')
             self.launchGame()
         if (answers["Menu"] == "Reprendre"):
-            os.system('cls')
+            os.system('clear')
             self.resume()
         if (answers["Menu"] == "Historique"):
-            os.system('cls')
+            os.system('clear')
             self.historiqueGame()
     
     def getResume(self):
         for i in range (2, 7):
             self.resumeDice.append(int(self.tabResume[0][i]))
         self.resumeRoll = int(self.tabResume[0][7])
-        # for i in range (10, 22):
-        #     print(Const.combi.keys[i])
         self.resumeCombi = {'1': int(self.tabResume[0][10]),
                             '2': int(self.tabResume[0][11]),
                             '3': int(self.tabResume[0][12]),
@@ -134,12 +133,19 @@ class Menu:
         self.resumeScore = int(self.tabResume[0][9])
     
     def resume(self):
-        print(self.tabResume)
         self.resumeDice.clear()
         self.resumeCombi.clear()
         self.tabResume = Req.resumeGame()
         if (self.tabResume[0][7] < '3'):
             self.getResume()
+            os.system('clear')
+            table = Table(title="Score")
+            table.add_column("Combinaison", justify="left", style="cyan")
+            table.add_column("Score", justify="right", style="magenta")
+            for k, v in self.resumeCombi.items():
+                table.add_row(str(k), str(v))
+            console = Console()
+            console.print(table)
             Resume.run(self.resumeDice, self.resumeRoll, self.resumeCombi, self.resumeScore)
         else:
             self.getResume()
@@ -173,16 +179,13 @@ class Menu:
         if (answers["Menu"] == "Oui"):
             valueModif = self.ReRollMenu(valueModif, roll)
             print(valueModif)
-            os.system('cls')
             R.WhichDiceChange(valueModif, roll, combi, score)
         if (answers["Menu"] == "Non"):
-            os.system('cls')
             C.searchCombination(valueModif, combi, score)
     
     def chooseWhichReroll(self, answers, roll, choice):
         if (answers["Menu"] == []):
             print("Vous n'avez pas sélectionné de dés a relancé, veuillez choisir.")
-            os.system('cls')
             self.ReRollMenu(choice, roll)
         for v in answers["Menu"]:
            self.DiceWichRoll.append(v)
@@ -194,9 +197,15 @@ class Menu:
                 Constante.combi[str(k)] = v
                 score  = score + v
                 Req.addScore(Constante.combi, score)
-                print (v)
-                print (Constante.combi)
-                print("prochain tours:")
+                os.system('clear')
+                table = Table(title="Score")
+                table.add_column("Combinaison", justify="left", style="cyan")
+                table.add_column("Score", justify="right", style="magenta")
+                for k, v in Constante.combi.items():
+                    table.add_row(str(k), str(v))
+                console = Console()
+                console.print(table)
+
                 Game().LaunchGame(Constante.combi, score)
     
     def chooseWhichSacrifice(self, combiSacrifice, answers, score):
@@ -204,8 +213,14 @@ class Menu:
             if (i == answers["Menu"]):
                 Constante.combi[i] = "X"
                 Req.addScore(Constante.combi, score)
-                print("prochain tours:")
-                os.system('cls')
+                os.system('clear')
+                table = Table(title="Score")
+                table.add_column("Combinaison", justify="left", style="cyan")
+                table.add_column("Score", justify="right", style="magenta")
+                for k, v in Constante.combi.items():
+                    table.add_row(str(k), str(v))
+                console = Console()
+                console.print(table)
                 Game().LaunchGame(Constante.combi, score)
     
     def RollMenu(self, valueModif, roll, combi, score):
@@ -220,8 +235,6 @@ class Menu:
 
     
     def ReRollMenu(self, choice, roll):
-        print('-----------------------------')
-        print(choice)
         questions = [
             inquirer.Checkbox('Menu',
                 message="Quel(s) dé(s) voulez-vous relancer (espace pour en choisir plusieurs) ?",
@@ -230,11 +243,9 @@ class Menu:
         ]
         answers = inquirer.prompt(questions)
         self.DiceRoll = self.chooseWhichReroll(answers, roll, choice)
-        print (self.DiceRoll)
         return self.DiceRoll
     
     def ChooseCombination(self, combiPossible, score):
-        print (combiPossible)
         questions = [
             inquirer.List('Menu',
                 message="Quelle combinaison souhaitez-vous faire ?",
@@ -273,7 +284,6 @@ class Game:
     def WhichRoll(self, combi, score):
         self.rollAllDice()
         self.rollOrNot()
-        print (self.rollDice)
         R.WhichDiceChange(self.rollDice, self.roll, combi, score)
     
     def WhichRollResume(self, resumeDice, resumeRoll, resumeCombi, resumeScore):
@@ -281,10 +291,8 @@ class Game:
     
         
     def LaunchGame(self, combi, score):
-        os.system('cls')
         self.rollDice.clear()
         Resume.run(combi, score)
-        # self.WhichRoll(combi, score)
 
     def showHistory(self, historique):
         for i in historique:
@@ -331,7 +339,6 @@ class Dices:
         return self.TabDice
 
     def roll_indexes(self, index, roll, choice):
-        print (choice)
         self.TabDice = choice
         for i in index:
             self.TabDice[int(i) - 1] = self.dices[int(i) - 1].roll()
@@ -441,7 +448,6 @@ class Combination:
             M.ChooseSacrifice(self.combiSacrifice, score)
     
     def chooseResult(self, combiPossible, score):
-        print(combiPossible)
         M.ChooseCombination(combiPossible, score)
     
     def FinishGame(self, score, combi):
